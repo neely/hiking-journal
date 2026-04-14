@@ -16,7 +16,7 @@
         "assets/images/2025/bear-paw-apr2025/02.jpg"
       ],
       "map": "assets/images/2025/bear-paw-apr2025/map.jpg",
-      "notes": "Bear Paw is the Cherokee name for Hanging Rock Ã¢ÂÂ a name the mountain earns. Steep switchbacks up through bare oaks, then a long exposed scramble to the top. Ridge views stretched the whole valley. Kids crushed it without a single complaint. Spotted wild turkey on the descent.",
+      "notes": "Bear Paw is the Cherokee name for Hanging Rock ÃÂ¢ÃÂÃÂ a name the mountain earns. Steep switchbacks up through bare oaks, then a long exposed scramble to the top. Ridge views stretched the whole valley. Kids crushed it without a single complaint. Spotted wild turkey on the descent.",
       "hikers": [
         "Ben",
         "Laura",
@@ -24,26 +24,6 @@
         "Son1",
         "Son2"
       ]
-    },
-    {
-      "id": "blah-apr2026",
-      "trail": "blah",
-      "location": "blah",
-      "state": "TN",
-      "date": "2026-04-14",
-      "stats": {
-        "miles": 4.2,
-        "elevation_gain": 1200,
-        "duration_minutes": 180
-      },
-      "hikers": [
-        "github"
-      ],
-      "notes": "blah",
-      "photos": [
-        "assets/images/2026/blah-apr2026/01.webp"
-      ],
-      "map": "assets/images/2026/blah-apr2026/map.webp"
     }
   ]
 }
