@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#3d2b1f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Log a Hike — Neely Trails</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    :root {
+      --bark:       #3d2b1f;
+      --bark-mid:   #6b4c38;
+      --bark-light: #9a7055;
+      --moss:       #3a5a2e;
+      --moss-mid:   #527844;
+      --sage:       #8aab7a;
+      --sage-pale:  #cddfc4;
+      --cream:      #f6f1e9;
+      --cream-dark: #ede5d4;
+      --stone:      #a09285;
+      --ink:        #1e1712;
+      --map-bg:     #e8f0df;
+      --shadow:     rgba(61,43,31,0.10);
+      --danger:     #a03030;
+
+      --YEAR_PALETTE_0: #3a5a2e;
+      --YEAR_PALETTE_1: #6b4c38;
+      --YEAR_PALETTE_2: #4a6c3a;
+      --YEAR_PALETTE_3: #4a5c72;
+      --YEAR_PALETTE_4: #725a4a;
+      --YEAR_PALETTE_5: #5a4a72;
+      --YEAR_PALETTE_6: #3d6b5a;
+      --YEAR_PALETTE_7: #7a5a2e;
+      --YEAR_PALETTE_8: #5a6e3a;
+      --YEAR_PALETTE_9: #6b3a4a;
+    }
+
+    body {
+      background: var(--cream);
+      font-family: 'DM Mono', monospace;
+      color: var(--ink);
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 120px;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .page-header {
+      background: var(--bark);
+      padding: 22px 20px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .back-btn {
+      color: var(--sage);
+      font-size: 22px;
+      text-decoration: none;
+      line-height: 1;
+      padding: 2px 0;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
+    .header-text h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      color: var(--cream);
+      letter-spacing: 0.01em;
+      line-height: 1;
+    }
+    .header-text .sub {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-top: 5px;
+    }
+
+    /* ── FORM SECTIONS ── */
+    .form-section {
+      margin: 18px 12px 0;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 14px var(--shadow), 0 1px 3px var(--shadow);
+    }
+    .section-label {
+      padding: 14px 18px 10px;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--stone);
+      border-bottom: 1px solid var(--cream-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--cream-dark);
+    }
+
+    /* ── FIELD ROWS ── */
+    .field-row {
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .field-row:last-child { border-bottom: none; }
+
+    .field-row label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--stone);
+      padding: 12px 18px 0;
+    }
+    .field-row input,
+    .field-row textarea,
+    .field-row select {
+      display: block;
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      color: var(--ink);
+      padding: 6px 18px 13px;
+      -webkit-appearance: none;
+      appearance: none;
+      resize: none;
+    }
+    .field-row input::placeholder,
+    .field-row textarea::placeholder {
+      color: var(--stone);
+      opacity: 0.55;
+    }
+    .field-row input:focus,
+    .field-row textarea:focus,
+    .field-row select:focus {
+      background: rgba(58,90,46,0.04);
+    }
+    .field-row textarea {
+      min-height: 100px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    /* Two-up grid inside a section */
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .field-grid .field-row {
+      border-bottom: none;
+    }
+    .field-grid .field-row:first-child {
+      border-right: 1px solid var(--cream-dark);
+    }
+
+    /* Three-up grid */
+    .field-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .field-grid-3 .field-row {
+      border-bottom: none;
+    }
+    .field-grid-3 .field-row:not(:last-child) {
+      border-right: 1px solid var(--cream-dark);
+    }
+
+    /* ── HIKERS TAG INPUT ── */
+    .hikers-wrap {
+      padding: 8px 18px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      min-height: 50px;
+    }
+    .hiker-tag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--sage-pale);
+      color: var(--moss);
+      border-radius: 20px;
+      padding: 5px 10px 5px 12px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      animation: tagPop 0.18s ease both;
+    }
+    @keyframes tagPop {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .hiker-tag button {
+      background: none;
+      border: none;
+      color: var(--moss);
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      opacity: 0.6;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hiker-input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--ink);
+      min-width: 80px;
+      flex: 1;
+    }
+    .hiker-input::placeholder { color: var(--stone); opacity: 0.55; }
+
+    /* ── PHOTO UPLOAD ── */
+    .photo-drop-zone {
+      margin: 0 18px 16px;
+      border: 1.5px dashed var(--cream-dark);
+      border-radius: 10px;
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .photo-drop-zone.drag-over,
+    .photo-drop-zone:active {
+      border-color: var(--moss);
+      background: rgba(58,90,46,0.04);
+    }
+    .photo-drop-zone input[type="file"] {
+      display: none;
+    }
+    .drop-icon {
+      font-size: 28px;
+      opacity: 0.4;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .drop-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--stone);
+      text-transform: uppercase;
+    }
+    .drop-hint {
+      font-size: 10px;
+      color: var(--stone);
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+
+    /* Photo preview list */
+    .photo-list {
+      margin: 0 18px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .photo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--cream);
+      border-radius: 8px;
+      padding: 7px 10px;
+      animation: fadeUp 0.25s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .photo-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .photo-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .photo-name {
+      font-size: 11px;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .photo-badge {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--moss);
+      margin-top: 2px;
+    }
+    .photo-remove {
+      background: none;
+      border: none;
+      color: var(--stone);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 4px;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
+
+    /* Map upload */
+    .map-drop-zone {
+      margin: 0 18px 16px;
+      border: 1.5px dashed var(--cream-dark);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s;
+    }
+    .map-drop-zone.has-image {
+      border-color: var(--moss);
+    }
+    .map-drop-zone input[type="file"] { display: none; }
+    .map-drop-placeholder {
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .map-preview {
+      display: none;
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: contain;
+      background: var(--map-bg);
+    }
+    .map-drop-zone.has-image .map-drop-placeholder { display: none; }
+    .map-drop-zone.has-image .map-preview { display: block; }
+    .map-replace-hint {
+      display: none;
+      padding: 7px;
+      text-align: center;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--stone);
+      background: var(--map-bg);
+      border-top: 1px solid var(--cream-dark);
+    }
+    .map-drop-zone.has-image .map-replace-hint { display: block; }
+
+    /* ── SAVE BUTTON ── */
+    .save-btn {
+      display: block;
+      width: calc(100% - 24px);
+      margin: 20px 12px 0;
+      padding: 17px;
+      background: var(--moss);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(58,90,46,0.35);
+      transition: transform 0.14s, box-shadow 0.14s, background 0.14s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .save-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 2px 8px rgba(58,90,46,0.25);
+    }
+    .save-btn:disabled {
+      background: var(--stone);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bark);
+      color: var(--cream);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      padding: 12px 22px;
+      border-radius: 40px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.22s, transform 0.22s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.success { background: var(--moss); }
+    .toast.error   { background: var(--danger); }
+    .toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── PAT MODAL ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(30,23,18,0.7);
+      z-index: 500;
+      display: flex;
+      align-items: flex-end;
+      padding: 0;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-sheet {
+      background: var(--cream);
+      border-radius: 20px 20px 0 0;
+      padding: 28px 24px 48px;
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+    }
+    .modal-backdrop.open .modal-sheet {
+      transform: translateY(0);
+    }
+    .modal-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--cream-dark);
+      border-radius: 2px;
+      margin: 0 auto 22px;
+    }
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--bark);
+      margin-bottom: 8px;
+    }
+    .modal-desc {
+      font-size: 11px;
+      color: var(--stone);
+      line-height: 1.7;
+      margin-bottom: 20px;
+      letter-spacing: 0.04em;
+    }
+    .modal-input {
+      width: 100%;
+      border: 1.5px solid var(--cream-dark);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+      letter-spacing: 0.04em;
+    }
+    .modal-input:focus { border-color: var(--moss); }
+    .modal-save {
+      margin-top: 14px;
+      width: 100%;
+      padding: 15px;
+      background: var(--moss);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Spinner inside button */
+    .btn-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Slug preview */
+    .slug-preview {
+      margin: 10px 18px 0;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--stone);
+      min-height: 16px;
+    }
+    .slug-preview span {
+      color: var(--moss);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <a class="back-btn" href="index.html" aria-label="Back to journal">‹</a>
+    <div class="header-text">
+      <h1 id="page-title">Log a Hike</h1>
+      <div class="sub" id="page-sub">New entry</div>
+    </div>
+  </header>
+
+  <!-- ── TRAIL INFO ── -->
+  <div class="form-section" id="sec-trail">
+    <div class="section-label">Trail</div>
+
+    <div class="field-row">
+      <label for="trail">Trail Name</label>
+      <input id="trail" type="text" placeholder="Bear Paw Meadows" autocomplete="off" autocorrect="off">
+    </div>
+
+    <div class="field-grid">
+      <div class="field-row">
+        <label for="location">Location</label>
+        <input id="location" type="text" placeholder="Great Smoky Mtns" autocorrect="off">
+      </div>
+      <div class="field-row">
+        <label for="state">State</label>
+        <input id="state" type="text" placeholder="TN" maxlength="2" autocorrect="off" autocapitalize="characters" style="text-transform:uppercase">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <label for="date">Date</label>
+      <input id="date" type="date">
+    </div>
+
+    <div class="slug-preview" id="slug-preview"></div>
+  </div>
+
+  <!-- ── STATS ── -->
+  <div class="form-section">
+    <div class="section-label">Stats</div>
+    <div class="field-grid-3">
+      <div class="field-row">
+        <label for="miles">Miles</label>
+        <input id="miles" type="number" placeholder="4.2" step="0.1" min="0" inputmode="decimal">
+      </div>
+      <div class="field-row">
+        <label for="elev">Elev Gain (ft)</label>
+        <input id="elev" type="number" placeholder="1200" step="10" min="0" inputmode="numeric">
+      </div>
+      <div class="field-row">
+        <label for="duration">Duration (min)</label>
+        <input id="duration" type="number" placeholder="180" step="5" min="0" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NOTES ── -->
+  <div class="form-section">
+    <div class="section-label">Trail Notes</div>
+    <div class="field-row" style="border-bottom:none">
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="The upper meadow was spectacular in early morning light…"></textarea>
+    </div>
+  </div>
+
+  <!-- ── HIKERS ── -->
+  <div class="form-section">
+    <div class="section-label">Hikers</div>
+    <div class="field-row" style="border-bottom:none; padding-bottom: 0;">
+      <label>Who came along?</label>
+      <div class="hikers-wrap" id="hikers-wrap">
+        <input class="hiker-input" id="hiker-input" type="text" placeholder="Type a name, press Enter" autocorrect="off">
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PHOTOS ── -->
+  <div class="form-section">
+    <div class="section-label">Photos</div>
+
+    <div class="photo-list" id="photo-list"></div>
+
+    <div class="photo-drop-zone" id="photo-drop" onclick="document.getElementById('photo-file').click()">
+      <input type="file" id="photo-file" accept="image/*" multiple>
+      <span class="drop-icon">📷</span>
+      <div class="drop-label">Add Photos</div>
+      <div class="drop-hint">First photo becomes the hero image</div>
+    </div>
+  </div>
+
+  <!-- ── MAP ── -->
+  <div class="form-section">
+    <div class="section-label">Trail Map</div>
+
+    <div class="map-drop-zone" id="map-drop" onclick="document.getElementById('map-file').click()">
+      <input type="file" id="map-file" accept="image/*">
+      <div class="map-drop-placeholder">
+        <span class="drop-icon">🗺️</span>
+        <div class="drop-label">Add Map Image</div>
+        <div class="drop-hint">Screenshot from AllTrails, Gaia GPS, etc.</div>
+      </div>
+      <img class="map-preview" id="map-preview" alt="Map preview">
+      <div class="map-replace-hint">Tap to replace</div>
+    </div>
+  </div>
+
+  <button class="save-btn" id="save-btn" onclick="saveHike()">Save Hike</button>
+
+  <!-- Delete button (edit mode only) -->
+  <button class="save-btn" id="delete-btn"
+    onclick="deleteHike()"
+    style="display:none; margin-top:12px; background:transparent; color:var(--danger); border:1.5px solid var(--danger); box-shadow:none;">
+    Delete This Hike
+  </button>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- PAT Modal -->
+  <div class="modal-backdrop" id="pat-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">GitHub Access Token</div>
+      <div class="modal-desc">
+        A Personal Access Token with <strong>repo</strong> scope is required to save hikes.<br><br>
+        It's stored only in your browser's local storage and never sent anywhere except GitHub.
+      </div>
+      <input class="modal-input" id="pat-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      <button class="modal-save" onclick="savePAT()">Save Token</button>
+    </div>
+  </div>
+
+  <script>
+    // ── CONFIG ──────────────────────────────────────────────────────────────
+    const GITHUB_USER   = 'benneely';
+    const GITHUB_REPO   = 'hiking-journal';
+    const GITHUB_BRANCH = 'main';
+    const DATA_FILE     = 'hikes.json';
+    const API_BASE      = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}`;
+
+    // ── YEAR PALETTE ─────────────────────────────────────────────────────────
+    const YEAR_PALETTE = [
+      '#3a5a2e','#6b4c38','#4a6c3a','#4a5c72',
+      '#725a4a','#5a4a72','#3d6b5a','#7a5a2e',
+      '#5a6e3a','#6b3a4a',
+    ];
+    function yearColor(y) {
+      const idx = ((y - 2012) % YEAR_PALETTE.length + YEAR_PALETTE.length) % YEAR_PALETTE.length;
+      return YEAR_PALETTE[idx];
+    }
+
+    // ── PAT MANAGEMENT ───────────────────────────────────────────────────────
+    function getPAT()      { return localStorage.getItem('gh_pat') || ''; }
+    function savePAT() {
+      const val = document.getElementById('pat-input').value.trim();
+      if (!val) return;
+      localStorage.setItem('gh_pat', val);
+      closePATModal();
+      showToast('Token saved', 'success');
+    }
+    function openPATModal() {
+      const m = document.getElementById('pat-modal');
+      m.classList.add('open');
+      setTimeout(() => document.getElementById('pat-input').focus(), 350);
+    }
+    function closePATModal() {
+      document.getElementById('pat-modal').classList.remove('open');
+    }
+    // Close modal on backdrop tap
+    document.getElementById('pat-modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closePATModal();
+    });
+    // PAT input: save on Enter
+    document.getElementById('pat-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') savePAT();
+    });
+
+    // ── TOAST ────────────────────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast' + (type ? ' ' + type : '');
+      requestAnimationFrame(() => t.classList.add('show'));
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ── SLUG ─────────────────────────────────────────────────────────────────
+    const MONTHS_SHORT = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    function makeSlug(trail, dateStr) {
+      if (!trail || !dateStr) return '';
+      const d = new Date(dateStr + 'T12:00:00');
+      const mon = MONTHS_SHORT[d.getMonth()];
+      const yr  = d.getFullYear();
+      const trailPart = trail
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+      return `${trailPart}-${mon}${yr}`;
+    }
+
+    // Update slug preview
+    function updateSlugPreview() {
+      const slug = makeSlug(
+        document.getElementById('trail').value,
+        document.getElementById('date').value
+      );
+      const el = document.getElementById('slug-preview');
+      el.innerHTML = slug ? `Slug: <span>${slug}</span>` : '';
+    }
+    document.getElementById('trail').addEventListener('input', updateSlugPreview);
+    document.getElementById('date').addEventListener('change', updateSlugPreview);
+
+    // Set today's date as default
+    (function setDefaultDate() {
+      const today = new Date();
+      const iso   = today.toISOString().split('T')[0];
+      document.getElementById('date').value = iso;
+      updateSlugPreview();
+    })();
+
+    // ── HIKERS TAG INPUT ─────────────────────────────────────────────────────
+    let hikers = [];
+    const hikerInput = document.getElementById('hiker-input');
+    const hikersWrap = document.getElementById('hikers-wrap');
+
+    function addHiker(name) {
+      name = name.trim();
+      if (!name || hikers.includes(name)) return;
+      hikers.push(name);
+      renderHikerTags();
+    }
+    function removeHiker(name) {
+      hikers = hikers.filter(h => h !== name);
+      renderHikerTags();
+    }
+    function renderHikerTags() {
+      // Clear existing tags
+      hikersWrap.querySelectorAll('.hiker-tag').forEach(t => t.remove());
+      // Re-insert before the input
+      hikers.forEach(name => {
+        const tag = document.createElement('div');
+        tag.className = 'hiker-tag';
+        tag.innerHTML = `${name}<button onclick="removeHiker('${name.replace(/'/g,"\\'")}')">×</button>`;
+        hikersWrap.insertBefore(tag, hikerInput);
+      });
+    }
+    hikerInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addHiker(hikerInput.value);
+        hikerInput.value = '';
+      } else if (e.key === 'Backspace' && hikerInput.value === '' && hikers.length) {
+        removeHiker(hikers[hikers.length - 1]);
+      }
+    });
+    hikerInput.addEventListener('blur', () => {
+      if (hikerInput.value.trim()) {
+        addHiker(hikerInput.value);
+        hikerInput.value = '';
+      }
+    });
+    // Tap wrap to focus input
+    hikersWrap.addEventListener('click', () => hikerInput.focus());
+
+    // ── PHOTO MANAGEMENT ─────────────────────────────────────────────────────
+    let photoFiles = []; // Array of {file, datetime} sorted by DateTimeOriginal
+
+    // Read EXIF DateTimeOriginal from a JPEG/HEIC file.
+    // EXIF is raw bytes — we parse just enough to find the tag.
+    // Returns a sortable string "YYYY:MM:DD HH:MM:SS" or null.
+    function readExifDatetime(file) {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        // Read only first 128KB — EXIF is always near the start
+        const blob = file.slice(0, 131072);
+        reader.onload = e => {
+          try {
+            const buf  = e.target.result;
+            const view = new DataView(buf);
+
+            // Must start with JPEG SOI marker FF D8
+            if (view.getUint16(0) !== 0xFFD8) { resolve(null); return; }
+
+            let offset = 2;
+            while (offset < view.byteLength - 4) {
+              const marker = view.getUint16(offset);
+              const len    = view.getUint16(offset + 2);
+
+              if (marker === 0xFFE1) { // APP1 — contains EXIF
+                // "Exif\0\0" header at offset+4
+                const exifHeader = String.fromCharCode(
+                  view.getUint8(offset+4), view.getUint8(offset+5),
+                  view.getUint8(offset+6), view.getUint8(offset+7)
+                );
+                if (exifHeader !== 'Exif') { resolve(null); return; }
+
+                const tiffStart = offset + 10;
+                const byteOrder = view.getUint16(tiffStart);
+                const le = byteOrder === 0x4949; // little-endian
+
+                const getU16 = o => view.getUint16(tiffStart + o, le);
+                const getU32 = o => view.getUint32(tiffStart + o, le);
+
+                // IFD0
+                const ifd0 = getU32(4);
+                const ifd0Count = getU16(ifd0);
+                let exifIFDOffset = null;
+
+                for (let i = 0; i < ifd0Count; i++) {
+                  const e = ifd0 + 2 + i * 12;
+                  const tag = getU16(e);
+                  if (tag === 0x8769) { exifIFDOffset = getU32(e + 8); break; }
+                }
+
+                // Search IFD0 and ExifIFD for tag 0x9003 (DateTimeOriginal)
+                const searchIFD = ifdOffset => {
+                  if (ifdOffset == null) return null;
+                  const count = getU16(ifdOffset);
+                  for (let i = 0; i < count; i++) {
+                    const e = ifdOffset + 2 + i * 12;
+                    const tag = getU16(e);
+                    if (tag === 0x9003) { // DateTimeOriginal
+                      const valOffset = getU32(e + 8);
+                      // Value is ASCII, 20 bytes: "YYYY:MM:DD HH:MM:SS\0"
+                      let str = '';
+                      for (let c = 0; c < 19; c++) {
+                        str += String.fromCharCode(view.getUint8(tiffStart + valOffset + c));
+                      }
+                      return str;
+                    }
+                  }
+                  return null;
+                };
+
+                const dt = searchIFD(ifd0) || searchIFD(exifIFDOffset);
+                resolve(dt || null);
+                return;
+              }
+
+              // Skip to next marker
+              if (marker === 0xFFDA) break; // SOS — no more metadata
+              offset += 2 + len;
+            }
+            resolve(null);
+          } catch (_) { resolve(null); }
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsArrayBuffer(blob);
+      });
+    }
+
+    function renderPhotoList() {
+      const list = document.getElementById('photo-list');
+      list.innerHTML = '';
+      photoFiles.forEach((entry, i) => {
+        const url  = URL.createObjectURL(entry.file);
+        const item = document.createElement('div');
+        item.className = 'photo-item';
+        const timeLabel = entry.datetime
+          ? entry.datetime.slice(0, 16).replace(':', '-').replace(':', '-')
+          : 'no timestamp';
+        item.innerHTML = `
+          <img class="photo-thumb" src="${url}" alt="">
+          <div class="photo-info">
+            <div class="photo-name">${entry.file.name}</div>
+            <div class="photo-badge">${i === 0 ? '★ Hero · ' : ''}${timeLabel}</div>
+          </div>
+          <button class="photo-remove" onclick="removePhoto(${i})">✕</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    async function addPhotoFiles(files) {
+      const incoming = [];
+      for (const f of files) {
+        if (!f.type.startsWith('image/')) continue;
+        const dt = await readExifDatetime(f);
+        incoming.push({ file: f, datetime: dt });
+      }
+      photoFiles = [...photoFiles, ...incoming];
+      // Sort: files with EXIF datetime first (ascending), then files without
+      photoFiles.sort((a, b) => {
+        if (a.datetime && b.datetime) return a.datetime < b.datetime ? -1 : 1;
+        if (a.datetime) return -1;
+        if (b.datetime) return 1;
+        return 0;
+      });
+      renderPhotoList();
+    }
+
+    function removePhoto(i) {
+      photoFiles.splice(i, 1);
+      renderPhotoList();
+    }
+
+    // File input change
+    document.getElementById('photo-file').addEventListener('change', e => {
+      addPhotoFiles(e.target.files);
+      e.target.value = ''; // reset so same file can be re-added after remove
+    });
+
+    // Drag and drop
+    const photoDrop = document.getElementById('photo-drop');
+    photoDrop.addEventListener('dragover', e => { e.preventDefault(); photoDrop.classList.add('drag-over'); });
+    photoDrop.addEventListener('dragleave',   () => photoDrop.classList.remove('drag-over'));
+    photoDrop.addEventListener('drop', e => {
+      e.preventDefault();
+      photoDrop.classList.remove('drag-over');
+      addPhotoFiles(e.dataTransfer.files);
+    });
+
+    // ── MAP IMAGE ────────────────────────────────────────────────────────────
+    let mapFile = null;
+
+    document.getElementById('map-file').addEventListener('change', e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      mapFile = f;
+      const url = URL.createObjectURL(f);
+      const mapDrop = document.getElementById('map-drop');
+      document.getElementById('map-preview').src = url;
+      mapDrop.classList.add('has-image');
+      e.target.value = '';
+    });
+
+    // ── GITHUB API HELPERS ───────────────────────────────────────────────────
+    async function ghHeaders() {
+      const pat = getPAT();
+      if (!pat) throw new Error('NO_PAT');
+      return {
+        'Authorization': `token ${pat}`,
+        'Content-Type':  'application/json',
+        'Accept':        'application/vnd.github.v3+json',
+      };
+    }
+
+    // Get current SHA + content of a file
+    async function ghGetFile(path) {
+      const headers = await ghHeaders();
+      const res = await fetch(`${API_BASE}/contents/${path}?ref=${GITHUB_BRANCH}`, { headers });
+      if (res.status === 404) return { sha: null, content: null };
+      if (!res.ok) throw new Error(`GitHub ${res.status}: ${await res.text()}`);
+      const data = await res.json();
+      return {
+        sha:     data.sha,
+        content: atob(data.content.replace(/\n/g, '')),
+      };
+    }
+
+    // Commit a file (create or update)
+    async function ghPutFile(path, contentBase64, sha, message) {
+      const headers = await ghHeaders();
+      const body = {
+        message,
+        content: contentBase64,
+        branch:  GITHUB_BRANCH,
+      };
+      if (sha) body.sha = sha;
+      const res = await fetch(`${API_BASE}/contents/${path}`, {
+        method:  'PUT',
+        headers,
+        body:    JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(`GitHub ${res.status}: ${await res.text()}`);
+      return res.json();
+    }
+
+    // Convert File → base64 string
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ── ZERO-PAD ─────────────────────────────────────────────────────────────
+    function zeroPad(n, width = 2) { return String(n).padStart(width, '0'); }
+
+    // ── SAVE HIKE ────────────────────────────────────────────────────────────
+    async function saveHike() {
+      // Validate required fields
+      const trail    = document.getElementById('trail').value.trim();
+      const location = document.getElementById('location').value.trim();
+      const state    = document.getElementById('state').value.trim().toUpperCase();
+      const date     = document.getElementById('date').value;
+
+      if (!trail)    { showToast('Trail name is required', 'error'); return; }
+      if (!location) { showToast('Location is required', 'error');   return; }
+      if (!state)    { showToast('State is required', 'error');      return; }
+      if (!date)     { showToast('Date is required', 'error');       return; }
+
+      // Check PAT
+      if (!getPAT()) { openPATModal(); return; }
+
+      // Build slug and ID
+      const slug = makeSlug(trail, date);
+      const year = new Date(date + 'T12:00:00').getFullYear();
+
+      // Disable save button
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner"></span>Saving…';
+
+      try {
+        // ── 1. Upload photos to staging/{slug}/01.jpg etc.
+        const photoPaths = [];
+        for (let i = 0; i < photoFiles.length; i++) {
+          const b64  = await fileToBase64(photoFiles[i].file);
+          const num  = zeroPad(i + 1, 2);
+          const ext  = photoFiles[i].file.name.split('.').pop().toLowerCase() || 'jpg';
+          const path = `staging/${slug}/${num}.${ext}`;
+          await ghPutFile(path, b64, null, `Add staging photo ${num} for ${slug}`);
+          // Final asset path (after GitHub Action processes it)
+          photoPaths.push(`assets/images/${year}/${slug}/${num}.webp`);
+        }
+
+        // ── 2. Upload map to staging/{slug}/map.jpg
+        let mapPath = null;
+        if (mapFile) {
+          const b64  = await fileToBase64(mapFile);
+          const path = `staging/${slug}/map.jpg`;
+          await ghPutFile(path, b64, null, `Add staging map for ${slug}`);
+          mapPath = `assets/images/${year}/${slug}/map.webp`;
+        }
+
+        // ── 3. Build the new hike entry
+        const milesVal = parseFloat(document.getElementById('miles').value) || null;
+        const elevVal  = parseInt(document.getElementById('elev').value)   || null;
+        const durVal   = parseInt(document.getElementById('duration').value) || null;
+        const notes    = document.getElementById('notes').value.trim() || null;
+
+        const newHike = {
+          id:       slug,
+          trail,
+          location,
+          state,
+          date,
+          stats: {
+            miles:             milesVal,
+            elevation_gain:    elevVal,
+            duration_minutes:  durVal,
+          },
+          hikers:  hikers.length ? hikers : undefined,
+          notes:   notes || undefined,
+          photos:  photoPaths.length ? photoPaths : undefined,
+          map:     mapPath  || undefined,
+        };
+
+        // Remove undefined keys
+        Object.keys(newHike).forEach(k => newHike[k] === undefined && delete newHike[k]);
+        Object.keys(newHike.stats).forEach(k => newHike.stats[k] == null && delete newHike.stats[k]);
+
+        // ── 4. Read current hikes.json, append, write back
+        const { sha, content } = await ghGetFile(DATA_FILE);
+        let hikeData;
+        if (content) {
+          hikeData = JSON.parse(content);
+        } else {
+          hikeData = { hikes: [] };
+        }
+        if (!Array.isArray(hikeData.hikes)) hikeData.hikes = [];
+        hikeData.hikes.push(newHike);
+
+        const updatedContent = btoa(unescape(encodeURIComponent(JSON.stringify(hikeData, null, 2))));
+        await ghPutFile(DATA_FILE, updatedContent, sha, `Add hike: ${trail} (${date})`);
+
+        // ── 5. Done
+        showToast('Hike saved! 🌲', 'success');
+        btn.textContent = 'Saved ✓';
+        setTimeout(() => { window.location.href = 'index.html'; }, 1800);
+
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = 'Save Hike';
+        if (err.message === 'NO_PAT') {
+          openPATModal();
+        } else {
+          showToast('Save failed — check token & connection', 'error');
+        }
+      }
+    }
+
+    // ── EDIT MODE ────────────────────────────────────────────────────────────
+    const EDIT_ID = new URLSearchParams(window.location.search).get('id');
+    let   EDIT_HIKE = null; // will hold the original hike object if editing
+
+    async function loadEditMode() {
+      // Switch UI to edit mode
+      document.getElementById('page-title').textContent = 'Edit Hike';
+      document.getElementById('page-sub').textContent   = 'Update entry';
+      document.getElementById('save-btn').textContent   = 'Update Hike';
+      document.getElementById('delete-btn').style.display = 'block';
+
+      // Don't set today's date as default — wait for the hike data
+      // (setDefaultDate already ran, will be overwritten below)
+
+      try {
+        const { content } = await ghGetFile(DATA_FILE);
+        if (!content) { showToast('Could not load journal data', 'error'); return; }
+        const hikeData = JSON.parse(content);
+        const hike = (hikeData.hikes || []).find(h => h.id === EDIT_ID);
+        if (!hike) { showToast('Hike not found: ' + EDIT_ID, 'error'); return; }
+        EDIT_HIKE = hike;
+
+        // Pre-populate fields
+        document.getElementById('trail').value    = hike.trail    || '';
+        document.getElementById('location').value = hike.location || '';
+        document.getElementById('state').value    = hike.state    || '';
+        document.getElementById('date').value     = hike.date     || '';
+        document.getElementById('miles').value    = hike.stats?.miles             ?? '';
+        document.getElementById('elev').value     = hike.stats?.elevation_gain    ?? '';
+        document.getElementById('duration').value = hike.stats?.duration_minutes  ?? '';
+        document.getElementById('notes').value    = hike.notes    || '';
+
+        // Hikers
+        if (Array.isArray(hike.hikers)) {
+          hike.hikers.forEach(addHiker);
+        }
+
+        // Show existing photo paths as read-only info (they're already processed assets)
+        const list = document.getElementById('photo-list');
+        if (hike.photos?.length) {
+          const note = document.createElement('div');
+          note.style.cssText = 'padding:10px 18px 2px; font-size:10px; letter-spacing:0.1em; color:var(--stone); text-transform:uppercase;';
+          note.textContent = `${hike.photos.length} existing photo${hike.photos.length > 1 ? 's' : ''} — upload new to replace`;
+          list.appendChild(note);
+        }
+
+        updateSlugPreview();
+
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to load hike', 'error');
+      }
+    }
+
+    // ── DELETE HIKE ──────────────────────────────────────────────────────────
+    async function deleteHike() {
+      if (!EDIT_HIKE) return;
+      if (!confirm(`Delete "${EDIT_HIKE.trail}"? This cannot be undone.`)) return;
+      if (!getPAT()) { openPATModal(); return; }
+
+      const btn = document.getElementById('delete-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner"></span>Deleting…';
+
+      try {
+        const { sha, content } = await ghGetFile(DATA_FILE);
+        const hikeData = JSON.parse(content);
+        hikeData.hikes = hikeData.hikes.filter(h => h.id !== EDIT_ID);
+        const updated = btoa(unescape(encodeURIComponent(JSON.stringify(hikeData, null, 2))));
+        await ghPutFile(DATA_FILE, updated, sha, `Delete hike: ${EDIT_HIKE.trail}`);
+        showToast('Hike deleted', 'success');
+        setTimeout(() => { window.location.href = 'index.html'; }, 1600);
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = 'Delete This Hike';
+        if (err.message === 'NO_PAT') openPATModal();
+        else showToast('Delete failed', 'error');
+      }
+    }
+
+    // ── PATCH saveHike FOR EDIT MODE ─────────────────────────────────────────
+    // Wrap the existing saveHike to handle update (replace) vs append (new)
+    const _saveHike_original = saveHike;
+    saveHike = async function () {
+      if (!EDIT_ID) {
+        // New hike — original logic
+        return _saveHike_original();
+      }
+
+      // Edit mode — same validation + upload, but replace instead of append
+      const trail    = document.getElementById('trail').value.trim();
+      const location = document.getElementById('location').value.trim();
+      const state    = document.getElementById('state').value.trim().toUpperCase();
+      const date     = document.getElementById('date').value;
+
+      if (!trail)    { showToast('Trail name is required', 'error'); return; }
+      if (!location) { showToast('Location is required', 'error');   return; }
+      if (!state)    { showToast('State is required', 'error');      return; }
+      if (!date)     { showToast('Date is required', 'error');       return; }
+      if (!getPAT()) { openPATModal(); return; }
+
+      const slug = EDIT_ID; // keep original slug/id on edit
+      const year = new Date(date + 'T12:00:00').getFullYear();
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spinner"></span>Saving…';
+
+      try {
+        // Upload any new photos
+        let photoPaths = EDIT_HIKE?.photos ? [...EDIT_HIKE.photos] : [];
+        if (photoFiles.length > 0) {
+          photoPaths = []; // replacing existing if new ones uploaded
+          for (let i = 0; i < photoFiles.length; i++) {
+            const b64  = await fileToBase64(photoFiles[i].file);
+            const num  = zeroPad(i + 1, 2);
+            const ext  = photoFiles[i].file.name.split('.').pop().toLowerCase() || 'jpg';
+            await ghPutFile(`staging/${slug}/${num}.${ext}`, b64, null, `Update photo ${num} for ${slug}`);
+            photoPaths.push(`assets/images/${year}/${slug}/${num}.webp`);
+          }
+        }
+
+        // Upload new map if provided
+        let mapPath = EDIT_HIKE?.map || null;
+        if (mapFile) {
+          const b64 = await fileToBase64(mapFile);
+          await ghPutFile(`staging/${slug}/map.jpg`, b64, null, `Update map for ${slug}`);
+          mapPath = `assets/images/${year}/${slug}/map.webp`;
+        }
+
+        const milesVal = parseFloat(document.getElementById('miles').value)    || null;
+        const elevVal  = parseInt(document.getElementById('elev').value)       || null;
+        const durVal   = parseInt(document.getElementById('duration').value)   || null;
+        const notes    = document.getElementById('notes').value.trim() || null;
+
+        const updatedHike = {
+          id: slug, trail, location, state, date,
+          stats: {
+            miles:            milesVal,
+            elevation_gain:   elevVal,
+            duration_minutes: durVal,
+          },
+          hikers: hikers.length ? hikers : undefined,
+          notes:  notes || undefined,
+          photos: photoPaths.length ? photoPaths : undefined,
+          map:    mapPath || undefined,
+        };
+        Object.keys(updatedHike).forEach(k => updatedHike[k] === undefined && delete updatedHike[k]);
+        Object.keys(updatedHike.stats).forEach(k => updatedHike.stats[k] == null && delete updatedHike.stats[k]);
+
+        // Read, replace matching entry, write back
+        const { sha, content } = await ghGetFile(DATA_FILE);
+        const hikeData = JSON.parse(content);
+        const idx = hikeData.hikes.findIndex(h => h.id === EDIT_ID);
+        if (idx === -1) hikeData.hikes.push(updatedHike);
+        else            hikeData.hikes[idx] = updatedHike;
+
+        const updated = btoa(unescape(encodeURIComponent(JSON.stringify(hikeData, null, 2))));
+        await ghPutFile(DATA_FILE, updated, sha, `Update hike: ${trail} (${date})`);
+
+        showToast('Hike updated! 🌲', 'success');
+        btn.textContent = 'Updated ✓';
+        setTimeout(() => { window.location.href = 'index.html'; }, 1800);
+
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = 'Update Hike';
+        if (err.message === 'NO_PAT') openPATModal();
+        else showToast('Save failed — check token & connection', 'error');
+      }
+    };
+
+    // ── INIT ─────────────────────────────────────────────────────────────────
+    if (EDIT_ID) {
+      loadEditMode();
+    }
+    // PAT prompt deferred until Save tap
+  </script>
+
+</body>
+</html>

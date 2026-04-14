@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#3d2b1f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Neely Trails</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    :root {
+      --bark:       #3d2b1f;
+      --bark-mid:   #6b4c38;
+      --bark-light: #9a7055;
+      --moss:       #3a5a2e;
+      --moss-mid:   #527844;
+      --sage:       #8aab7a;
+      --sage-pale:  #cddfc4;
+      --cream:      #f6f1e9;
+      --cream-dark: #ede5d4;
+      --stone:      #a09285;
+      --ink:        #1e1712;
+      --map-bg:     #e8f0df;
+      --shadow:     rgba(61,43,31,0.10);
+
+      /* Year accent palette */
+      --c-2025: #3a5a2e;
+      --c-2024: #6b4c38;
+      --c-2023: #4a6c3a;
+      --c-2022: #4a5c72;
+      --c-2021: #725a4a;
+      --c-2020: #5a4a72;
+    }
+
+    body {
+      background: var(--cream);
+      font-family: 'DM Mono', monospace;
+      color: var(--ink);
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 100px;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .journal-header {
+      background: var(--bark);
+      padding: 22px 20px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .journal-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      color: var(--cream);
+      letter-spacing: 0.01em;
+      line-height: 1;
+    }
+    .journal-header .sub {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-top: 5px;
+    }
+
+    /* ── LOADING / ERROR STATES ── */
+    .state-msg {
+      text-align: center;
+      padding: 60px 24px;
+      font-size: 12px;
+      color: var(--stone);
+      letter-spacing: 0.08em;
+    }
+    .state-msg .icon {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 14px;
+      opacity: 0.5;
+    }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--cream-dark);
+      border-top-color: var(--moss);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── YEAR SECTION ── */
+    .year-section { padding-top: 6px; }
+    .year-bar {
+      display: flex;
+      align-items: center;
+      padding: 18px 16px 10px;
+      gap: 14px;
+    }
+    .year-bar .yr {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-style: italic;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .year-bar .rule {
+      flex: 1;
+      height: 1.5px;
+      border-radius: 1px;
+      opacity: 0.18;
+    }
+    .year-bar .count {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      white-space: nowrap;
+    }
+
+    /* ── HIKE CARD ── */
+    .hike-card {
+      margin: 0 12px 14px;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 14px var(--shadow), 0 1px 3px var(--shadow);
+      animation: fadeUp 0.35s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Card header */
+    .card-header {
+      display: flex;
+      align-items: stretch;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .date-block {
+      min-width: 58px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px 10px;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .date-block .mo {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+    .date-block .dy {
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1.05;
+      margin: 1px 0;
+    }
+    .date-block .yr-sm {
+      font-size: 9px;
+      opacity: 0.65;
+    }
+    .card-meta {
+      flex: 1;
+      padding: 15px 10px 15px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    .trail-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--bark);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .trail-place {
+      font-size: 10px;
+      color: var(--stone);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chev {
+      align-self: center;
+      margin-right: 16px;
+      color: var(--sage-pale);
+      font-size: 20px;
+      transition: transform 0.28s ease;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .hike-card.open .chev { transform: rotate(180deg); }
+
+    /* Card body */
+    .card-body {
+      display: none;
+      border-top: 1px solid var(--cream-dark);
+    }
+    .hike-card.open .card-body { display: block; }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .stat {
+      padding: 13px 8px 11px;
+      text-align: center;
+      border-right: 1px solid var(--cream-dark);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-val {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--bark);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--stone);
+      margin-top: 4px;
+    }
+
+    /* ── GALLERY ── */
+    .gallery-wrap {
+      position: relative;
+      overflow: hidden;
+      background: #111;
+      aspect-ratio: 4/3;
+      border-top: 1px solid var(--cream-dark);
+      touch-action: pan-y;
+    }
+    .gallery-track {
+      display: flex;
+      height: 100%;
+      transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
+      will-change: transform;
+    }
+    .gallery-slide {
+      min-width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+      display: block;
+    }
+    .gallery-dots {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 7px;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.45);
+      transition: all 0.22s;
+      cursor: pointer;
+    }
+    .dot.active {
+      background: #fff;
+      width: 18px;
+      border-radius: 3px;
+    }
+    /* Single photo — hide dots */
+    .gallery-wrap[data-count="1"] .gallery-dots { display: none; }
+
+    /* ── NOTES ── */
+    .notes-block {
+      padding: 16px 18px 18px;
+      border-top: 1px solid var(--cream-dark);
+    }
+    .notes-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--stone);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .notes-eyebrow::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--cream-dark);
+    }
+    .notes-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 14px;
+      line-height: 1.72;
+      color: var(--bark-mid);
+    }
+
+    /* ── MAP ── */
+    .map-block {
+      border-top: 1px solid var(--cream-dark);
+      background: var(--map-bg);
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      position: relative;
+    }
+    .map-block img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .map-label {
+      position: absolute;
+      bottom: 10px;
+      left: 12px;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--bark);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Edit button inside card */
+    .edit-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 0 16px 16px;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--cream-dark);
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--stone);
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .edit-btn:active { border-color: var(--moss); color: var(--moss); }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: 26px;
+      right: 22px;
+      width: 58px;
+      height: 58px;
+      background: var(--moss);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 300;
+      box-shadow: 0 4px 18px rgba(58,90,46,0.42);
+      text-decoration: none;
+      z-index: 300;
+      transition: transform 0.15s, box-shadow 0.15s;
+      line-height: 1;
+      padding-bottom: 2px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fab:active {
+      transform: scale(0.93);
+      box-shadow: 0 2px 8px rgba(58,90,46,0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="journal-header">
+    <h1>Neely Trails</h1>
+    <div class="sub">Family Hiking Journal</div>
+  </header>
+
+  <main id="journal">
+    <div class="state-msg" id="loading">
+      <div class="spinner"></div>
+      Loading journal…
+    </div>
+  </main>
+
+  <a class="fab" href="add.html" title="Log a new hike">+</a>
+
+  <script>
+    // ── CONFIG ──────────────────────────────────────────────────────────────
+    const GITHUB_USER  = 'benneely';
+    const GITHUB_REPO  = 'hiking-journal';
+    const GITHUB_BRANCH = 'main';
+    const DATA_FILE    = 'hikes.json';
+
+    // Base URL for raw assets (images)
+    const ASSET_BASE = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/`;
+
+    // ── MONTHS ──────────────────────────────────────────────────────────────
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    // ── YEAR COLORS ─────────────────────────────────────────────────────────
+    // Cycles from 2012 forward — works for any year, forever.
+    const YEAR_PALETTE = [
+      '#3a5a2e', // moss green
+      '#6b4c38', // bark brown
+      '#4a6c3a', // fern
+      '#4a5c72', // slate blue
+      '#725a4a', // clay
+      '#5a4a72', // dusk purple
+      '#3d6b5a', // pine teal
+      '#7a5a2e', // amber bark
+      '#5a6e3a', // olive
+      '#6b3a4a', // mulberry
+    ];
+    function yearColor(y) {
+      const idx = ((y - 2012) % YEAR_PALETTE.length + YEAR_PALETTE.length) % YEAR_PALETTE.length;
+      return YEAR_PALETTE[idx];
+    }
+
+    // ── FORMAT HELPERS ───────────────────────────────────────────────────────
+    function fmtMiles(n)    { return n % 1 === 0 ? n.toFixed(1) : n.toString(); }
+    function fmtElev(n)     { return n >= 1000 ? (n/1000).toFixed(1) + 'k' : n.toString(); }
+    function fmtDuration(m) {
+      if (!m) return '—';
+      const h = Math.floor(m / 60);
+      const min = m % 60;
+      if (min === 0) return `${h} hr`;
+      return `${h}h ${min}m`;
+    }
+
+    // ── TOUCH SWIPE STATE ────────────────────────────────────────────────────
+    const touchOrigin = {};
+
+    function galleryTouchStart(e, uid) {
+      touchOrigin[uid] = e.touches[0].clientX;
+    }
+    function galleryTouchEnd(e, uid) {
+      const start = touchOrigin[uid];
+      if (start == null) return;
+      const diff = start - e.changedTouches[0].clientX;
+      touchOrigin[uid] = null;
+      if (Math.abs(diff) < 40) return;
+      const wrap  = document.getElementById('gal-' + uid);
+      const count = parseInt(wrap.dataset.count);
+      let   idx   = parseInt(wrap.dataset.idx);
+      if (diff > 0 && idx < count - 1) idx++;
+      else if (diff < 0 && idx > 0)    idx--;
+      goToSlide(uid, idx);
+    }
+    function goToSlide(uid, idx) {
+      const wrap  = document.getElementById('gal-' + uid);
+      const track = document.getElementById('trk-' + uid);
+      wrap.dataset.idx = idx;
+      track.style.transform = `translateX(${-idx * 100}%)`;
+      wrap.querySelectorAll('.dot').forEach((d, i) =>
+        d.classList.toggle('active', i === idx)
+      );
+    }
+
+    // ── CARD TOGGLE ──────────────────────────────────────────────────────────
+    function toggleCard(id) {
+      document.getElementById(id).classList.toggle('open');
+    }
+
+    // ── BUILD CARD HTML ──────────────────────────────────────────────────────
+    function buildCard(hike, color) {
+      const uid   = hike.id;
+      const date  = new Date(hike.date + 'T12:00:00');
+      const mo    = MONTHS[date.getMonth()];
+      const dy    = date.getDate();
+      const yr    = date.getFullYear();
+
+      const miles = hike.stats?.miles    != null ? fmtMiles(hike.stats.miles)         : '—';
+      const elev  = hike.stats?.elevation_gain != null ? fmtElev(hike.stats.elevation_gain) + ' ft' : '—';
+      const dur   = hike.stats?.duration_minutes != null ? fmtDuration(hike.stats.duration_minutes) : '—';
+
+      const photos = (hike.photos || []).map(p => ASSET_BASE + p);
+      const mapSrc  = hike.map ? ASSET_BASE + hike.map : null;
+      const count   = photos.length;
+
+      // Gallery slides
+      const slides = photos.map((src, i) =>
+        `<img class="gallery-slide" src="${src}" alt="Photo ${i+1} — ${hike.trail}" loading="lazy">`
+      ).join('');
+
+      // Dots (only if >1 photo)
+      const dots = count > 1
+        ? `<div class="gallery-dots">${photos.map((_, i) =>
+            `<div class="dot${i===0?' active':''}" onclick="goToSlide('${uid}',${i})"></div>`
+          ).join('')}</div>`
+        : '';
+
+      // Gallery block (only if photos exist)
+      const galleryBlock = count > 0 ? `
+        <div class="gallery-wrap"
+             id="gal-${uid}"
+             data-idx="0"
+             data-count="${count}"
+             ontouchstart="galleryTouchStart(event,'${uid}')"
+             ontouchend="galleryTouchEnd(event,'${uid}')">
+          <div class="gallery-track" id="trk-${uid}">${slides}</div>
+          ${dots}
+        </div>` : '';
+
+      // Notes block (only if notes exist)
+      const notesBlock = hike.notes ? `
+        <div class="notes-block">
+          <div class="notes-eyebrow">Trail Notes</div>
+          <p class="notes-text">${hike.notes}</p>
+        </div>` : '';
+
+      // Map block (only if map exists)
+      const mapBlock = mapSrc ? `
+        <div class="map-block">
+          <img src="${mapSrc}" alt="Trail map — ${hike.trail}" loading="lazy">
+          <span class="map-label">${miles !== '—' ? miles + ' mi · ' : ''}${hike.location}</span>
+        </div>` : '';
+
+      return `
+        <article class="hike-card open" id="card-${uid}">
+          <div class="card-header" onclick="toggleCard('card-${uid}')">
+            <div class="date-block" style="background:${color}">
+              <span class="mo">${mo}</span>
+              <span class="dy">${dy}</span>
+              <span class="yr-sm">${yr}</span>
+            </div>
+            <div class="card-meta">
+              <div class="trail-name">${hike.trail}</div>
+              <div class="trail-place">${hike.location} · ${hike.state}</div>
+            </div>
+            <div class="chev">⌃</div>
+          </div>
+          <div class="card-body">
+            <div class="stats-row">
+              <div class="stat">
+                <div class="stat-val">${miles}</div>
+                <div class="stat-lbl">Miles</div>
+              </div>
+              <div class="stat">
+                <div class="stat-val">${elev}</div>
+                <div class="stat-lbl">Elev Gain</div>
+              </div>
+              <div class="stat">
+                <div class="stat-val">${dur}</div>
+                <div class="stat-lbl">Duration</div>
+              </div>
+            </div>
+            ${galleryBlock}
+            ${notesBlock}
+            ${mapBlock}
+            <a class="edit-btn" href="edit.html?id=${uid}">Edit this hike</a>
+          </div>
+        </article>`;
+    }
+
+    // ── RENDER JOURNAL ───────────────────────────────────────────────────────
+    function render(hikes) {
+      const journal = document.getElementById('journal');
+      journal.innerHTML = '';
+
+      if (!hikes || hikes.length === 0) {
+        journal.innerHTML = `
+          <div class="state-msg">
+            <span class="icon">🌲</span>
+            No hikes yet. Tap + to log your first one.
+          </div>`;
+        return;
+      }
+
+      // Sort newest first
+      const sorted = [...hikes].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Group by year
+      const byYear = {};
+      for (const hike of sorted) {
+        const yr = new Date(hike.date + 'T12:00:00').getFullYear();
+        if (!byYear[yr]) byYear[yr] = [];
+        byYear[yr].push(hike);
+      }
+
+      const years = Object.keys(byYear).sort((a, b) => b - a);
+      let delay = 0;
+
+      for (const yr of years) {
+        const color  = yearColor(parseInt(yr));
+        const yrHikes = byYear[yr];
+        const label  = yrHikes.length === 1 ? '1 hike' : `${yrHikes.length} hikes`;
+
+        const section = document.createElement('section');
+        section.className = 'year-section';
+        section.innerHTML = `
+          <div class="year-bar">
+            <span class="yr" style="color:${color}">${yr}</span>
+            <div class="rule" style="background:${color}"></div>
+            <span class="count">${label}</span>
+          </div>
+          ${yrHikes.map(h => buildCard(h, color)).join('')}
+        `;
+        journal.appendChild(section);
+
+        // Stagger card animations
+        section.querySelectorAll('.hike-card').forEach(card => {
+          card.style.animationDelay = `${delay}ms`;
+          delay += 60;
+        });
+      }
+    }
+
+    // ── FETCH DATA ───────────────────────────────────────────────────────────
+    async function loadJournal() {
+      const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${DATA_FILE}?t=${Date.now()}`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        render(data.hikes);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('journal').innerHTML = `
+          <div class="state-msg">
+            <span class="icon">⚠️</span>
+            Couldn't load the journal.<br>Check your connection and try again.
+          </div>`;
+      }
+    }
+
+    loadJournal();
+  </script>
+</body>
+</html>
