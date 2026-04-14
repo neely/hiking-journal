@@ -32,7 +32,7 @@ jobs:
 
           STAGING_DIR = Path("staging")
           ASSETS_DIR  = Path("assets/images")
-          LONG_EDGE   = 2400
+          LONG_EDGE   = 2000 
 
           staged = [p for p in STAGING_DIR.rglob("*") if p.is_file() and p.name != ".gitkeep"]
 
@@ -43,7 +43,6 @@ jobs:
           for src in staged:
               parts = src.relative_to(STAGING_DIR).parts
               if len(parts) != 2:
-                  print(f"Skipping unexpected path: {src}")
                   continue
 
               slug, filename = parts
@@ -51,7 +50,6 @@ jobs:
               
               match = re.search(r'(\d{4})$', slug)
               if not match:
-                  print(f"Cannot parse year from slug '{slug}', skipping.")
                   continue
               year = match.group(1)
 
@@ -61,30 +59,22 @@ jobs:
 
               try:
                   with Image.open(src) as img:
-                      # 1. Correct orientation based on EXIF before processing
+                      # Fixes orientation from phone sensor data
                       img = ImageOps.exif_transpose(img)
                       
-                      # 2. Convert to RGB (removes alpha channel/transparency weight)
                       img = img.convert("RGB")
 
-                      # 3. Resize logic (preserving your original ratio math)
+                      # Resize logic
                       w, h = img.size
                       if max(w, h) > LONG_EDGE:
-                          if w >= h:
-                              new_w = LONG_EDGE
-                              new_h = round(h * LONG_EDGE / w)
-                          else:
-                              new_h = LONG_EDGE
-                              new_w = round(w * LONG_EDGE / h)
-                          img = img.resize((new_w, new_h), Image.LANCZOS)
+                          scale = LONG_EDGE / max(w, h)
+                          img = img.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
 
-                      # 4. Save with metadata stripping
-                      # quality=80 is the sweet spot; icc_profile=None and exif=b"" 
-                      # strip out the hidden 'junk' data.
+                      # Save with the 'Sweet Spot' settings we tested
                       img.save(
                           out_path, 
                           "WEBP", 
-                          quality=80, 
+                          quality=75, 
                           method=6, 
                           lossless=False,
                           icc_profile=None,
@@ -97,7 +87,6 @@ jobs:
                   sys.exit(1)
 
               src.unlink()
-              print(f"     Deleted {src}")
 
           print("Done.")
           EOF
