@@ -5,6 +5,12 @@ on:
     paths:
       - 'staging/**'
 
+# This group ensures only one run happens at a time per branch.
+# It cancels older pending runs to stop push-conflict emails.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   process:
     runs-on: ubuntu-latest
@@ -59,18 +65,19 @@ jobs:
 
               try:
                   with Image.open(src) as img:
-                      # Fixes orientation from phone sensor data
+                      # 1. Correct orientation from phone sensor data
                       img = ImageOps.exif_transpose(img)
                       
+                      # 2. Convert to RGB
                       img = img.convert("RGB")
 
-                      # Resize logic
+                      # 3. Resize to 2000px sweet spot
                       w, h = img.size
                       if max(w, h) > LONG_EDGE:
                           scale = LONG_EDGE / max(w, h)
                           img = img.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
 
-                      # Save with the 'Sweet Spot' settings we tested
+                      # 4. Save (Quality 75 + Heavy Metadata Stripping)
                       img.save(
                           out_path, 
                           "WEBP", 
@@ -86,6 +93,7 @@ jobs:
                   print(f"  ✗  Failed to process {src}: {e}")
                   sys.exit(1)
 
+              # Clean up staging after successful processing
               src.unlink()
 
           print("Done.")
@@ -99,7 +107,8 @@ jobs:
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
-            git commit -m "chore: process staged images [skip ci]"
+            # Rebase right before pushing to handle concurrent commits from add.html
             git pull --rebase origin main
+            git commit -m "chore: process staged images [skip ci]"
             git push
           fi
