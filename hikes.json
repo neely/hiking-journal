@@ -1,18 +1,23 @@
 {
   "hikes": [
     {
-      "id": "ravenel-bridge-test",
-      "date": "2026-04-14",
-      "trail": "Ravenel Bridge Walk",
-      "location": "Mount Pleasant",
-      "state": "SC",
+      "id": "bear-paw-apr2025",
+      "date": "2025-04-06",
+      "trail": "Bear Paw Trail",
+      "location": "Bear Paw State Natural Area",
+      "state": "NC",
       "stats": {
-        "miles": 5.0,
-        "elevation_gain": 150,
-        "duration_minutes": 90
+        "miles": 3.0,
+        "elevation_gain": 1200,
+        "duration_minutes": 180
       },
-      "notes": "Testing the journal layout. If you can see this, the index is loading correctly and the CNAME is working!",
-      "hikers": ["Neely"]
+      "photos": [
+        "assets/images/2025/bear-paw-apr2025/01.jpg",
+        "assets/images/2025/bear-paw-apr2025/02.jpg"
+      ],
+      "map": "assets/images/2025/bear-paw-apr2025/map.jpg",
+      "notes": "Bear Paw is the Cherokee name for Hanging Rock — a name the mountain earns. Steep switchbacks up through bare oaks, then a long exposed scramble to the top. Ridge views stretched the whole valley. Kids crushed it without a single complaint. Spotted wild turkey on the descent.",
+      "hikers": ["Ben", "Laura", "Daughter", "Son1", "Son2"]
     }
   ]
 }
