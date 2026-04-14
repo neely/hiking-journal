@@ -100,14 +100,12 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Stage deletions in staging/ and new files in assets/
           git add -A staging/ assets/
-
-          # Only commit if there's actually something to commit
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
             git commit -m "chore: process staged images [skip ci]"
+            # ADD THESE TWO LINES INSTEAD OF JUST 'git push'
+            git pull --rebase origin main
             git push
           fi
