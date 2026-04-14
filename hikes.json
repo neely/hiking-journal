@@ -1,37 +1,3 @@
 {
-  "hikes": [
-    {
-      "id": "bear-paw-apr2025",
-      "trail": "Bear Paw Trail",
-      "location": "Valle Crucis",
-      "state": "NC",
-      "date": "2026-04-09",
-      "stats": {
-        "miles": 2.9,
-        "elevation_gain": 1108,
-        "duration_minutes": 165
-      },
-      "hikers": [
-        "Ben",
-        "Marion",
-        "Adam",
-        "Greer",
-        "William",
-        "Timber",
-        "Saoirse"
-      ],
-      "notes": "Hanging Rock, also known as Bear's Paw (Yonahâwayah in Cherokee). This trail is through the 500 acres Parley Rasmussen donated to the state, and whose house we stayed at. Steep switchbacks up through bare oaks, then a long scramble to the top. At top could see Hanging Rock next to us, and down the other side into Seven Devils and Banner Elk. We lost Marion, William and Greer mid way up, but Adam, Ben, Timber and Saoirse continued up.",
-      "photos": [
-        "assets/images/2026/bear-paw-apr2025/01.webp",
-        "assets/images/2026/bear-paw-apr2025/02.webp",
-        "assets/images/2026/bear-paw-apr2025/03.webp",
-        "assets/images/2026/bear-paw-apr2025/04.webp",
-        "assets/images/2026/bear-paw-apr2025/05.webp",
-        "assets/images/2026/bear-paw-apr2025/06.webp",
-        "assets/images/2026/bear-paw-apr2025/07.webp",
-        "assets/images/2026/bear-paw-apr2025/08.webp"
-      ],
-      "map": "assets/images/2026/bear-paw-apr2025/map.webp"
-    }
-  ]
+  "hikes": []
 }
