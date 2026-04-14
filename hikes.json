@@ -1,3 +1,18 @@
 {
-  "hikes": []
+  "hikes": [
+    {
+      "id": "ravenel-bridge-test",
+      "date": "2026-04-14",
+      "trail": "Ravenel Bridge Walk",
+      "location": "Mount Pleasant",
+      "state": "SC",
+      "stats": {
+        "miles": 5.0,
+        "elevation_gain": 150,
+        "duration_minutes": 90
+      },
+      "notes": "Testing the journal layout. If you can see this, the index is loading correctly and the CNAME is working!",
+      "hikers": ["Neely"]
+    }
+  ]
 }
