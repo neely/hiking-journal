@@ -1,0 +1,113 @@
+name: Process Staged Images
+
+on:
+  push:
+    paths:
+      - 'staging/**'
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow
+        run: pip install Pillow
+
+      - name: Resize and move images
+        run: |
+          python3 << 'EOF'
+          import os, re, sys
+          from pathlib import Path
+          from PIL import Image
+
+          STAGING_DIR = Path("staging")
+          ASSETS_DIR  = Path("assets/images")
+          LONG_EDGE   = 2400
+
+          # Walk every file inside staging/
+          staged = [p for p in STAGING_DIR.rglob("*") if p.is_file() and p.name != ".gitkeep"]
+
+          if not staged:
+              print("Nothing to process.")
+              sys.exit(0)
+
+          for src in staged:
+              # staging/{slug}/filename  →  parse slug from path
+              parts = src.relative_to(STAGING_DIR).parts
+              if len(parts) != 2:
+                  print(f"Skipping unexpected path: {src}")
+                  continue
+
+              slug, filename = parts
+              stem = Path(filename).stem   # e.g. "01" or "map"
+              ext  = Path(filename).suffix.lower()
+
+              # Derive year from hikes.json via slug date suffix (e.g. bear-paw-apr2025)
+              # Slug format: {trail-words}-{mon}{year}
+              match = re.search(r'(\d{4})$', slug)
+              if not match:
+                  print(f"Cannot parse year from slug '{slug}', skipping.")
+                  continue
+              year = match.group(1)
+
+              # Output path: assets/images/{year}/{slug}/{stem}.webp
+              out_dir  = ASSETS_DIR / year / slug
+              out_dir.mkdir(parents=True, exist_ok=True)
+              out_path = out_dir / f"{stem}.webp"
+
+              try:
+                  with Image.open(src) as img:
+                      # Convert to RGB (handles PNG, HEIC-converted, etc.)
+                      img = img.convert("RGB")
+
+                      # Resize so longest edge = LONG_EDGE, preserve aspect ratio
+                      w, h = img.size
+                      if max(w, h) > LONG_EDGE:
+                          if w >= h:
+                              new_w = LONG_EDGE
+                              new_h = round(h * LONG_EDGE / w)
+                          else:
+                              new_h = LONG_EDGE
+                              new_w = round(w * LONG_EDGE / h)
+                          img = img.resize((new_w, new_h), Image.LANCZOS)
+
+                      # Save as WebP, quality 88
+                      img.save(out_path, "WEBP", quality=88, method=6)
+                      print(f"  ✓  {src}  →  {out_path}  ({img.size[0]}×{img.size[1]})")
+
+              except Exception as e:
+                  print(f"  ✗  Failed to process {src}: {e}")
+                  sys.exit(1)
+
+              # Delete the staging original
+              src.unlink()
+              print(f"     Deleted {src}")
+
+          print("Done.")
+          EOF
+
+      - name: Commit processed images
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage deletions in staging/ and new files in assets/
+          git add -A staging/ assets/
+
+          # Only commit if there's actually something to commit
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "chore: process staged images [skip ci]"
+            git push
+          fi
