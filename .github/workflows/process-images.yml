@@ -5,6 +5,8 @@ on:
     paths:
       - 'staging/**'
 
+# This group ensures only one run happens at a time per branch.
+# It cancels older pending runs to stop push-conflict emails.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,13 +28,6 @@ jobs:
 
       - name: Install Pillow
         run: pip install Pillow
-
-      # NEW STEP: Pull latest changes BEFORE Python touches any files
-      - name: Sync with remote
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
 
       - name: Resize and move images
         run: |
@@ -70,13 +65,19 @@ jobs:
 
               try:
                   with Image.open(src) as img:
+                      # 1. Correct orientation from phone sensor data
                       img = ImageOps.exif_transpose(img)
+                      
+                      # 2. Convert to RGB
                       img = img.convert("RGB")
+
+                      # 3. Resize to 2000px sweet spot
                       w, h = img.size
                       if max(w, h) > LONG_EDGE:
                           scale = LONG_EDGE / max(w, h)
                           img = img.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
 
+                      # 4. Save (Quality 75 + Heavy Metadata Stripping)
                       img.save(
                           out_path, 
                           "WEBP", 
@@ -92,6 +93,7 @@ jobs:
                   print(f"  ✗  Failed to process {src}: {e}")
                   sys.exit(1)
 
+              # Clean up staging after successful processing
               src.unlink()
 
           print("Done.")
@@ -99,7 +101,16 @@ jobs:
 
       - name: Commit processed images
         run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 1. Pull changes BEFORE adding new files to keep the index clean
+          git pull --rebase origin main
+          
+          # 2. Now add the newly processed images
           git add -A staging/ assets/
+          
+          # 3. Commit and push
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
