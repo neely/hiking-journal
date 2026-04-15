@@ -1,3 +1,13 @@
 {
-  "hikes": []
+  "hikes": [
+    {
+      "id": "bear-paw-trail-jan2026",
+      "trail": "Bear Paw Trail",
+      "location": "Great Smoky Mtns",
+      "state": "NC",
+      "date": "2026-01-08",
+      "stats": {},
+      "map": "assets/images/2026/bear-paw-trail-jan2026/map.webp"
+    }
+  ]
 }
