@@ -5,10 +5,6 @@ on:
     paths:
       - 'staging/**'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   process:
     runs-on: ubuntu-latest
@@ -26,13 +22,6 @@ jobs:
 
       - name: Install Pillow
         run: pip install Pillow
-
-      # NEW STEP: Pull latest changes BEFORE Python touches any files
-      - name: Sync with remote
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
 
       - name: Resize and move images
         run: |
@@ -70,13 +59,18 @@ jobs:
 
               try:
                   with Image.open(src) as img:
+                      # Fixes orientation from phone sensor data
                       img = ImageOps.exif_transpose(img)
+                      
                       img = img.convert("RGB")
+
+                      # Resize logic
                       w, h = img.size
                       if max(w, h) > LONG_EDGE:
                           scale = LONG_EDGE / max(w, h)
                           img = img.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
 
+                      # Save with the 'Sweet Spot' settings we tested
                       img.save(
                           out_path, 
                           "WEBP", 
@@ -99,10 +93,13 @@ jobs:
 
       - name: Commit processed images
         run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A staging/ assets/
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
             git commit -m "chore: process staged images [skip ci]"
+            git pull --rebase origin main
             git push
           fi
