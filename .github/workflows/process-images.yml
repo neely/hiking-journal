@@ -103,12 +103,17 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 1. Pull changes BEFORE adding new files to keep the index clean
+          git pull --rebase origin main
+          
+          # 2. Now add the newly processed images
           git add -A staging/ assets/
+          
+          # 3. Commit and push
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
-            # Rebase right before pushing to handle concurrent commits from add.html
-            git pull --rebase origin main
             git commit -m "chore: process staged images [skip ci]"
             git push
           fi
