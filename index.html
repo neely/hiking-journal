@@ -268,9 +268,10 @@
       position: relative;
       overflow: hidden;
       background: #111;
-      aspect-ratio: 4/3;
+      aspect-ratio: 4/3;           /* fallback if no photo data */
       border-top: 1px solid var(--cream-dark);
       touch-action: pan-y;
+      transition: aspect-ratio 0.32s ease;  /* Chrome 117+; instant on older */
     }
     .gallery-track {
       display: flex;
@@ -501,6 +502,10 @@
       wrap.querySelectorAll('.dot').forEach((d, i) =>
         d.classList.toggle('active', i === idx)
       );
+      // Morph the container to match this photo's aspect ratio
+      const slide = track.querySelectorAll('.gallery-slide')[idx];
+      const ratio = slide?.dataset.ratio;
+      if (ratio) wrap.style.aspectRatio = ratio;
     }
 
     // ── CARD TOGGLE ──────────────────────────────────────────────────────────
@@ -520,14 +525,22 @@
       const elev  = hike.stats?.elevation_gain != null ? fmtElev(hike.stats.elevation_gain) + ' ft' : '—';
       const dur   = hike.stats?.duration_minutes != null ? fmtDuration(hike.stats.duration_minutes) : '—';
 
-      const photos = (hike.photos || []).map(p => ASSET_BASE + p);
+      const photos = (hike.photos || []).map(p => {
+        const src = ASSET_BASE + (typeof p === 'string' ? p : p.src);
+        const ratio = typeof p === 'object' && p.aspect_ratio ? p.aspect_ratio : null;
+        return { src, ratio };
+      });
       const mapSrc  = hike.map ? ASSET_BASE + hike.map : null;
       const count   = photos.length;
 
-      // Gallery slides
-      const slides = photos.map((src, i) =>
-        `<img class="gallery-slide" src="${src}" alt="Photo ${i+1} — ${hike.trail}" loading="lazy">`
+      // Gallery slides — embed data-ratio so goToSlide can morph the container
+      const slides = photos.map((p, i) =>
+        `<img class="gallery-slide"${p.ratio ? ` data-ratio="${p.ratio}"` : ''} src="${p.src}" alt="Photo ${i+1} — ${hike.trail}" loading="lazy">`
       ).join('');
+
+      // Initial aspect-ratio style from first photo (falls back to CSS 4/3)
+      const firstRatio = photos[0]?.ratio;
+      const wrapStyle  = firstRatio ? ` style="aspect-ratio:${firstRatio}"` : '';
 
       // Dots (only if >1 photo)
       const dots = count > 1
@@ -538,7 +551,7 @@
 
       // Gallery block (only if photos exist)
       const galleryBlock = count > 0 ? `
-        <div class="gallery-wrap"
+        <div class="gallery-wrap"${wrapStyle}
              id="gal-${uid}"
              data-idx="0"
              data-count="${count}"
