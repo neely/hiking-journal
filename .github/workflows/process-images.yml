@@ -39,12 +39,13 @@ jobs:
       - name: Resize and move images
         run: |
           python3 << 'EOF'
-          import os, re, sys
+          import os, re, sys, json
           from pathlib import Path
           from PIL import Image, ImageOps
 
           STAGING_DIR = Path("staging")
           ASSETS_DIR  = Path("assets/images")
+          HIKES_JSON  = Path("hikes.json")
           LONG_EDGE   = 2000 
 
           staged = [p for p in STAGING_DIR.rglob("*") if p.is_file() and p.name != ".gitkeep"]
@@ -52,6 +53,9 @@ jobs:
           if not staged:
               print("Nothing to process.")
               sys.exit(0)
+
+          # Track new photo metadata: { slug -> [ {src, aspect_ratio}, ... ] }
+          new_photos = {}
 
           for src in staged:
               parts = src.relative_to(STAGING_DIR).parts
@@ -88,13 +92,46 @@ jobs:
                           icc_profile=None,
                           exif=b""
                       )
-                      print(f"  ✓  {src}  →  {out_path} ({img.size[0]}×{img.size[1]})")
+                      final_w, final_h = img.size
+                      aspect_ratio = round(final_w / final_h, 3)
+                      rel_path = str(out_path)
+                      if slug not in new_photos:
+                          new_photos[slug] = []
+                      new_photos[slug].append({"src": rel_path, "aspect_ratio": aspect_ratio})
+                      print(f"  ✓  {src}  →  {out_path} ({final_w}×{final_h}, ratio {aspect_ratio})")
 
               except Exception as e:
                   print(f"  ✗  Failed to process {src}: {e}")
                   sys.exit(1)
 
               src.unlink()
+
+          # Update hikes.json with aspect_ratio on matching photo entries
+          if new_photos and HIKES_JSON.exists():
+              data = json.loads(HIKES_JSON.read_text())
+              for hike in data.get("hikes", []):
+                  slug = hike.get("id", "")
+                  if slug not in new_photos:
+                      continue
+                  # Build a lookup: filename -> aspect_ratio
+                  ratio_map = {Path(p["src"]).name: p for p in new_photos[slug]}
+                  updated = []
+                  for entry in hike.get("photos", []):
+                      # entry may be a plain string path or already an object
+                      if isinstance(entry, str):
+                          fname = Path(entry).name
+                          if fname in ratio_map:
+                              updated.append({
+                                  "src": ratio_map[fname]["src"],
+                                  "aspect_ratio": ratio_map[fname]["aspect_ratio"]
+                              })
+                          else:
+                              updated.append(entry)
+                      else:
+                          updated.append(entry)
+                  hike["photos"] = updated
+              HIKES_JSON.write_text(json.dumps(data, indent=2))
+              print("Updated hikes.json with aspect ratios.")
 
           print("Done.")
           EOF
