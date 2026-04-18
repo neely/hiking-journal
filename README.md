@@ -198,11 +198,19 @@ const SITE_BASE = 'https://hiking.benneely.com'; // ← your custom domain or Pa
 
 ### 3. Set up the repo structure
 
-Make sure these exist before your first push:
+Since you are forking a real journal, you need to clear out the existing content first.
 
-- `hikes.json` with content `{ "hikes": [] }`
-- `staging/.gitkeep` (an empty file to keep the folder tracked by git)
-- `assets/images/` (can be empty; the Action creates subfolders as needed)
+**Reset `hikes.json`** to a blank structure:
+
+```json
+{
+  "hikes": []
+}
+```
+
+**Clear the images** — delete everything inside `assets/images/` but leave the folder itself. The Action will create year and slug subfolders automatically as you add hikes.
+
+**Leave the `.gitkeep` files in place.** Git does not track empty folders, so both `staging/` and `assets/images/` each contain a `.gitkeep` file — a blank file whose only purpose is to keep the folder committed. If you accidentally delete them, recreate them by creating a new empty file named `.gitkeep` inside each folder. Do not delete the `.github/workflows/` folder or its contents.
 
 ### 4. Create your PAT
 
