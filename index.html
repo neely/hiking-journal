@@ -310,6 +310,53 @@
     /* Single photo — hide dots */
     .gallery-wrap[data-count="1"] .gallery-dots { display: none; }
 
+    /* ── GALLERY ARROWS (pointer devices only) ── */
+    @media (hover: hover) {
+      .gallery-arrow {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        z-index: 10;
+      }
+      .gallery-arrow.prev { left: 0; }
+      .gallery-arrow.next { right: 0; }
+      .gallery-arrow::after {
+        content: '';
+        width: 32px;
+        height: 32px;
+        background: rgba(0,0,0,0.45);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+      .gallery-arrow .arrow-icon {
+        position: absolute;
+        color: #fff;
+        font-size: 16px;
+        line-height: 1;
+        pointer-events: none;
+      }
+      .gallery-wrap:hover .gallery-arrow:not(.hidden) { opacity: 1; }
+      .gallery-arrow.hidden { opacity: 0 !important; pointer-events: none; }
+    }
+    /* On touch-only devices arrows are never rendered */
+    @media (hover: none) {
+      .gallery-arrow { display: none; }
+    }
+
     /* ── NOTES ── */
     .notes-block {
       padding: 16px 18px 18px;
@@ -497,6 +544,7 @@
     function goToSlide(uid, idx) {
       const wrap  = document.getElementById('gal-' + uid);
       const track = document.getElementById('trk-' + uid);
+      const count = parseInt(wrap.dataset.count);
       wrap.dataset.idx = idx;
       track.style.transform = `translateX(${-idx * 100}%)`;
       wrap.querySelectorAll('.dot').forEach((d, i) =>
@@ -506,6 +554,11 @@
       const slide = track.querySelectorAll('.gallery-slide')[idx];
       const ratio = slide?.dataset.ratio;
       if (ratio) wrap.style.aspectRatio = ratio;
+      // Show/hide arrows based on position
+      const prev = wrap.querySelector('.gallery-arrow.prev');
+      const next = wrap.querySelector('.gallery-arrow.next');
+      if (prev) prev.classList.toggle('hidden', idx === 0);
+      if (next) next.classList.toggle('hidden', idx === count - 1);
     }
 
     // ── CARD TOGGLE ──────────────────────────────────────────────────────────
@@ -549,6 +602,15 @@
           ).join('')}</div>`
         : '';
 
+      // Arrows (only if >1 photo — hover devices will show them, touch devices CSS-hides them)
+      const arrows = count > 1 ? `
+        <button class="gallery-arrow prev hidden" onclick="goToSlide('${uid}', parseInt(document.getElementById('gal-${uid}').dataset.idx)-1)" aria-label="Previous photo">
+          <span class="arrow-icon">‹</span>
+        </button>
+        <button class="gallery-arrow next" onclick="goToSlide('${uid}', parseInt(document.getElementById('gal-${uid}').dataset.idx)+1)" aria-label="Next photo">
+          <span class="arrow-icon">›</span>
+        </button>` : '';
+
       // Gallery block (only if photos exist)
       const galleryBlock = count > 0 ? `
         <div class="gallery-wrap"${wrapStyle}
@@ -558,6 +620,7 @@
              ontouchstart="galleryTouchStart(event,'${uid}')"
              ontouchend="galleryTouchEnd(event,'${uid}')">
           <div class="gallery-track" id="trk-${uid}">${slides}</div>
+          ${arrows}
           ${dots}
         </div>` : '';
 
