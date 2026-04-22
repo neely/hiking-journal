@@ -138,7 +138,7 @@ jobs:
 
       - name: Commit processed images
         run: |
-          git add -A staging/ assets/
+          git add -A staging/ assets/ hikes.json
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
